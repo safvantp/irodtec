@@ -25,6 +25,7 @@ class ProductRepositoryImpl implements ProductRepository {
         }
 
         final List data = jsonData['data'];
+        print(data);
         return data.map((e) => ProductModel.fromJson(e)).toList();
       } else {
         throw ServerException('Server Error: ${response.statusCode}');

@@ -40,7 +40,7 @@ class PropertyCard extends StatelessWidget {
                   image: NetworkImage(
                     property.images.isNotEmpty
                         ? property.images.first
-                        : 'https://via.placeholder.com/800',
+                        : 'https://cdn.pixabay.com/photo/2017/01/18/15/25/architecture-1999590_1280.jpg',
                   ),
                   fit: BoxFit.cover,
                 ),

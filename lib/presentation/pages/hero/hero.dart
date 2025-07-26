@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:irodteck/presentation/controllers/product_controller.dart';
 
 class RealEstateHeroSection extends StatelessWidget {
+  final ProductController controller = Get.find<ProductController>();
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 1024;
@@ -155,17 +159,36 @@ class RealEstateHeroSection extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildDropdown('Category'),
+                    Obx(() => _buildSearchDropdown(
+                      'Category',
+                      controller.availableCategories,
+                      controller.selectedCategory.value,
+                      (value) => controller.updateSearchFilters(category: value)
+                    )),
                     SizedBox(height: 16),
-                    _buildDropdown('Property Type'),
+                    Obx(() => _buildSearchDropdown(
+                      'Property Type',
+                      controller.availablePropertyTypes,
+                      controller.selectedPropertyType.value,
+                      (value) => controller.updateSearchFilters(propertyType: value)
+                    )),
                     SizedBox(height: 16),
-                    _buildDropdown('Location'),
+                    Obx(() => _buildSearchDropdown(
+                      'Location',
+                      controller.availableLocations,
+                      controller.selectedLocation.value,
+                      (value) => controller.updateSearchFilters(location: value)
+                    )),
                     SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          controller.searchProperties();
+                          // Optionally scroll to properties section
+                          _scrollToPropertiesSection();
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF2563EB),
                           shape: RoundedRectangleBorder(
@@ -269,16 +292,40 @@ class RealEstateHeroSection extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Expanded(child: _buildDropdown('Category')),
+                        Expanded(
+                          child: Obx(() => _buildSearchDropdown(
+                            'Category',
+                            controller.availableCategories,
+                            controller.selectedCategory.value,
+                            (value) => controller.updateSearchFilters(category: value)
+                          ))
+                        ),
                         SizedBox(width: 16),
-                        Expanded(child: _buildDropdown('Property Type')),
+                        Expanded(
+                          child: Obx(() => _buildSearchDropdown(
+                            'Property Type',
+                            controller.availablePropertyTypes,
+                            controller.selectedPropertyType.value,
+                            (value) => controller.updateSearchFilters(propertyType: value)
+                          ))
+                        ),
                         SizedBox(width: 16),
-                        Expanded(child: _buildDropdown('Location')),
+                        Expanded(
+                          child: Obx(() => _buildSearchDropdown(
+                            'Location',
+                            controller.availableLocations,
+                            controller.selectedLocation.value,
+                            (value) => controller.updateSearchFilters(location: value)
+                          ))
+                        ),
                         SizedBox(width: 20),
                         Container(
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              controller.searchProperties();
+                              _scrollToPropertiesSection();
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFF2563EB),
                               padding: EdgeInsets.symmetric(horizontal: 30),
@@ -309,11 +356,36 @@ class RealEstateHeroSection extends StatelessWidget {
         ],
         
         SizedBox(height: 40),
+        
+        // Add a clear filters button
+        Obx(() {
+          if (controller.selectedCategory.isNotEmpty ||
+              controller.selectedPropertyType.isNotEmpty ||
+              controller.selectedLocation.isNotEmpty) {
+            return Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => controller.clearFilters(),
+                    icon: Icon(Icons.clear, size: 16),
+                    label: Text('Clear Filters'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return SizedBox.shrink();
+        }),
       ],
     );
   }
 
-  Widget _buildDropdown(String hint) {
+  Widget _buildSearchDropdown(String hint, List<String> items, String selectedValue, Function(String?) onChanged) {
     return Container(
       height: 50,
       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -322,22 +394,41 @@ class RealEstateHeroSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         color: Colors.grey.shade50,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedValue.isEmpty ? null : selectedValue,
+          hint: Text(
             hint,
             style: TextStyle(
               color: Colors.grey.shade600,
               fontSize: 16,
             ),
           ),
-          Icon(
+          isExpanded: true,
+          icon: Icon(
             Icons.keyboard_arrow_down,
             color: Colors.grey.shade600,
           ),
-        ],
+          items: items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(item),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
       ),
+    );
+  }
+
+  void _scrollToPropertiesSection() {
+    // You can implement scrolling to properties section if needed
+    // This would require a ScrollController or similar mechanism
+    Get.snackbar(
+      'Search Applied',
+      'Properties filtered successfully',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: Duration(seconds: 2),
     );
   }
 }
